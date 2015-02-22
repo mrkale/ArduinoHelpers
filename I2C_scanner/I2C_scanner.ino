@@ -6,8 +6,8 @@
   - The sketch initates transmition at each of 7 bit addresses. If some
     device answers at particular address, it is considered as present
     and active.
-  - Then the sketch list that address in hexadecimal a decimal format.
-  - Results are displayed in serial monitor.
+  - Then the sketch list that address in hexadecimal and decimal format.
+  - Results are displayed in serial monitor at 9600 baud.
   - The sketch has been inspired by Nick Gammon, 20th April 2011.
 
   LICENSE:
@@ -16,9 +16,9 @@
   
   CREDENTIALS:
   Author: Libor Gabaj
-  Version: 0.1.1
+  Version: 0.1.2
   Created: 13.02.2015
-  Updated: 18.02.2015
+  Updated: 22.02.2015
  */
 #include <Wire.h>
 
