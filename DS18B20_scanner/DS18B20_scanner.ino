@@ -4,12 +4,12 @@
 
   DESCRIPTION:
   - The sketch detects all devices on the one wire bus.
-  - For detected device the address is printed in hexadecimal and decimal
-    format as an 8 items arrays.
   - Printed features:
     MODEL: Family name of a sensors
     RES: Temperature sensing resolution in bits
     POWER: Mode of power supply
+    ID: Identifier as a hash value from address
+    ADDRESS: Address in hexadecimal format
   - Results are displayed in serial monitor at 9600 baud.
 
   LICENSE:
@@ -18,9 +18,9 @@
   
   CREDENTIALS:
   Author: Libor Gabaj
-  Version: 1.0.0
+  Version: 1.1.0
   Created: 25.03.2015
-  Updated: 25.03.2015
+  Updated: 02.04.2015
  */
 #include <OneWire.h>
 #include <DS18B20.h>
@@ -35,7 +35,7 @@ void setup()
   Serial.println("DS18B20 scanner");
     
   // Print header
-  Serial.println(F("#\tMODEL\tRES\tPOWER\t\tADDRESS"));
+  Serial.println(F("#\tMODEL\tRES\tPOWER\t\tID\tADDRESS"));
 
   // Devices scanning
   byte count = 0;
@@ -78,6 +78,10 @@ void setup()
       Serial.print(F("Parasite"));
     }
     
+    // Print identifier
+    Serial.print(F("\t0x"));
+    Serial.print(ds.getAddressId(), HEX);
+    
     // Print address
     uint8_t address[8];    
     ds.getAddress(address);    
@@ -87,14 +91,6 @@ void setup()
       Serial.print(F("0x"));
       if (address[i] < 0x10) Serial.print("0");
       Serial.print(address[i], HEX);
-      if (i < 7) Serial.print(F(", "));
-    }
-    Serial.print(F("\t\t"));    
-    for (byte i = 0; i < 8; i++)
-    {
-      if (address[i] < 100) Serial.print("0");
-      if (address[i] < 10) Serial.print("0");
-      Serial.print(address[i], DEC);
       if (i < 7) Serial.print(F(", "));
     }
     Serial.println();
