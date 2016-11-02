@@ -22,10 +22,8 @@
 #include "OneWire.h"
 #include "DS18B20.h"
 
-#define SKETCH "DS18B20_scanner 1.2.0"
+#define SKETCH "DS18B20_scanner 1.3.0"
 #define ONEWIRE_VERSION "OneWire 2.3.2"
-
-const unsigned char ADDRESS_LEN = 50;       // Expected maximal length of the device address string
 
 // Hardware configuration
 const byte PIN_DS18B20 = 4;
@@ -86,16 +84,18 @@ void setup()
     }
     
     // Print identifier
-    Serial.print(F("\t0x"));
-    Serial.print(ds.getAddressId(), HEX);
-    
+    char addressId[DS18B20_PRINT_ID_LEN];    
+    ds.printAddressId(addressId);    
+    Serial.print(F("\t"));    
+    Serial.print(addressId);
+
     // Print address
-    char address[ADDRESS_LEN];    
+    char address[DS18B20_PRINT_ADDRESS_LEN];    
     ds.printAddress(address);    
     Serial.print(F("\t"));    
     Serial.println(address);
   }
-  // Scan results
+  // Scannig results
   if (count == 0) Serial.println("N/A");
   Serial.print(F("*** Found "));
   Serial.print(count);
@@ -105,4 +105,6 @@ void setup()
 }
  
  void loop(){}
+
+
 
