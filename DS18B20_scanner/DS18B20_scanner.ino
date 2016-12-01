@@ -22,7 +22,7 @@
 #include "OneWire.h"
 #include "DS18B20.h"
 
-#define SKETCH "DS18B20_scanner 1.4.0"
+#define SKETCH "DS18B20_scanner 1.4.1"
 
 // Hardware configuration
 const byte PIN_DS18B20 = 4;
@@ -63,7 +63,6 @@ void setup()
         break;
       default:
         Serial.print(F("UNKNOWN"));
-        break;
     }
     
     // Print resolution
@@ -82,13 +81,24 @@ void setup()
       case DS18B20_RES_12_BIT:
         Serial.print(F("12"));
         break;
+      default:
+        Serial.print(F("??"));
     }
     Serial.print(F("-bit"));
     
     // Print power mode
     Serial.print(F("\t"));
-    if (ds.getPowerMode() == DS18B20_POWER_PARASITE) Serial.print("Parasite");
-    if (ds.getPowerMode() == DS18B20_POWER_EXTERNAL) Serial.print("External");
+    switch (ds.getPowerMode())
+    {
+      case DS18B20_POWER_EXTERNAL:
+        Serial.print(F("External"));
+        break;
+      case DS18B20_POWER_PARASITE:
+        Serial.print(F("Parasite"));
+        break;
+      default:
+        Serial.print(F("UNKNOWN"));
+    }
     
     // Print identifier
     char addressId[DS18B20_PRINT_ID_LEN];    
