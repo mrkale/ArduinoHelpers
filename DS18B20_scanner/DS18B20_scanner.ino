@@ -3,12 +3,12 @@
   Scanning 1-wire bus and detecting all DS18x20 sensors on it
 
   DESCRIPTION:
-  - The sketch detects all devices on the one wire bus.
+  The sketch detects all devices on the one wire bus.
   - Printed features:
-    MODEL: Family name of a sensors
+    MODEL: Family name of sensors
     RES: Temperature sensing resolution in bits
     POWER: Mode of power supply
-    ID: Identifier as a hash value from address
+    ID: Identifier as a CRC8 value from address (last address byte)
     ADDRESS: Address in hexadecimal format
   - Results are displayed in serial monitor at 9600 baud.
 
@@ -22,7 +22,7 @@
 #include "OneWire.h"
 #include "DS18B20.h"
 
-#define SKETCH "DS18B20_scanner 1.4.1"
+#define SKETCH "DS18B20_scanner 1.4.2"
 
 // Hardware configuration
 const byte PIN_DS18B20 = 4;
@@ -37,8 +37,9 @@ void setup()
   Serial.println(F("Libraries:"));
   Serial.println(F(DS18B20_VERSION));
   Serial.println(F(ONEWIRE_VERSION));
-  // Print header
   Serial.println(F("---"));
+  
+  // Print header
   Serial.println(F("#\tMODEL\tRES\tPOWER\t\tID\tADDRESS"));
 
   // Devices scanning
