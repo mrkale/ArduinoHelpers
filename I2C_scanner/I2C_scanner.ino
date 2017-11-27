@@ -1,6 +1,6 @@
 /*
   NAME:
-  I2C_scanner.ino - Detect active I2C addresses for 7-bit addressing
+  I2C_scanner - Detect active I2C addresses for 7-bit addressing
 
   DESCRIPTION:
   The sketch initates transmition at each of 7 bit addresses. If some
@@ -12,62 +12,65 @@
   LICENSE:
   This program is free software; you can redistribute it and/or modify
   it under the terms of the MIT License (MIT).
-  
+
   CREDENTIALS:
   Author: Libor Gabaj
-   
+
   CREDITS:
   Nick Gammon, 20th April 2011 - Inspiration taken for thish sketch.
 */
+#include <Arduino.h>
 #include <Wire.h>
+#include "gbj_serial_debug.h"
 
-#define SKETCH "I2C_scanner 1.1.3"
-#define TWOWIRE_VERSION "TwoWire 2006-2012"
+#define SKETCH "I2C_SCANNER 1.2.0"
 
 // Range of scanned addresses
-const byte minAddress = 0x00;
-const byte maxAddress = 0x7F;
+const byte ADDRESS_MIN = 0x00;
+const byte ADDRESS_MAX = 0x7F;
 
-void setup() {
-  Serial.begin(9600);
-  Serial.println(F(SKETCH));
-  Serial.println(F("Libraries:"));
-  Serial.println(F(TWOWIRE_VERSION));
-  Serial.println(F("---"));
-  
+
+void setup()
+{
+  SERIAL_BEGIN(9600)
+  SERIAL_TITLE(SKETCH)
+  SERIAL_TITLE("Libraries:")
+  SERIAL_TITLE(GBJ_SERIAL_DEBUG_VERSION)
+  SERIAL_DELIM
+
   // Print header
-  Serial.println(F("I2C scanner found address(es) within the range"));
-  
+  SERIAL_TITLE("I2C scanner found address(es) within the range")
+
   // Buffer for formatted text
   char text[50];
 
   sprintf(text, "0x%02X - 0x%02X (%u - %u):",
-    minAddress, maxAddress,
-    minAddress, maxAddress
+    ADDRESS_MIN, ADDRESS_MAX,
+    ADDRESS_MIN, ADDRESS_MAX
   );
-  Serial.println(text);
-  
+  SERIAL_LOG1(text)
+
   // Active devices counter
   byte count = 0;
- 
+
   // Address scanning
   Wire.begin();
-  for (byte i = minAddress; i <= maxAddress; i++)
+  for (byte i = ADDRESS_MIN; i <= ADDRESS_MAX; i++)
   {
     Wire.beginTransmission(i);
     if (Wire.endTransmission() == 0)
     {
       sprintf(text, "%1u. 0x%02X (%u)", ++count, i, i);
-      Serial.println(text);
+      SERIAL_LOG1(text)
     }
   }
   // Scanning results
   if (count == 0)
   {
-    Serial.println("N/A");
+    SERIAL_TITLE("N/A")
   }
   sprintf(text, "*** Found %u device(s) ***", count);
-  Serial.println(text);
+  SERIAL_LOG1(text)
 }
 
 void loop() {}

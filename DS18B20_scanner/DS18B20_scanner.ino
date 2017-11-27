@@ -1,12 +1,12 @@
 /*
   NAME:
-  Scanning 1-wire bus and detecting all DS18x20 sensors on it
+  Scanning 1-wire bus and detecting all DS18 temperature sensors on it
 
   DESCRIPTION:
   The sketch detects all devices on the one wire bus.
   - Printed features:
     MODEL: Family name of sensors
-    RES: Temperature sensing resolution in bits
+    RESOLUTION: Temperature sensing resolution in bits and centigrade
     POWER: Mode of power supply
     ID: Identifier as a CRC8 value from address (last address byte)
     ADDRESS: Address in hexadecimal format
@@ -15,112 +15,89 @@
   LICENSE:
   This program is free software; you can redistribute it and/or modify
   it under the terms of the MIT License (MIT).
-  
+
   CREDENTIALS:
   Author: Libor Gabaj
- */
-#include "OneWire.h"
-#include "DS18B20.h"
+*/
+#include <Arduino.h>
+#include <OneWire.h>
+#include "gbj_dallas18.h"
+#include "gbj_serial_debug.h"
 
-#define SKETCH "DS18B20_scanner 1.4.2"
+#define SKETCH "DS18B20_SCANNER 1.5.0"
+
+#define TAB SERIAL_F("\t")
 
 // Hardware configuration
-const byte PIN_DS18B20 = 4;
+const unsigned char PIN_DS18B20 = 3;   // Usually on Arduino
+// const unsigned char PIN_DS18B20 = D1;  // Usually on ESP8266
 
-// Measurement
-DS18B20 ds(PIN_DS18B20);
+// Processing
+gbj_dallas18 ds = gbj_dallas18(PIN_DS18B20);
+gbj_dallas18_address_text addressText;
+gbj_dallas18_id_text idText;
+unsigned char deviceCount;
 
 void setup()
 {
-  Serial.begin(9600);
-  Serial.println(F(SKETCH));
-  Serial.println(F("Libraries:"));
-  Serial.println(F(DS18B20_VERSION));
-  Serial.println(F(ONEWIRE_VERSION));
-  Serial.println(F("---"));
-  
-  // Print header
-  Serial.println(F("#\tMODEL\tRES\tPOWER\t\tID\tADDRESS"));
+  SERIAL_BEGIN(9600)
+  SERIAL_TITLE(SKETCH)
+  SERIAL_TITLE("Libraries:")
+  SERIAL_TITLE(GBJ_SERIAL_DEBUG_VERSION)
+  SERIAL_TITLE(GBJ_DALLAS18_VERSION)
+  SERIAL_DELIM
 
   // Devices scanning
-  byte count = 0;
-  while(ds.selectNext())
+  SERIAL_TITLE("#\tMODEL\tRESOLUTION\t\tPOWER\t\tID\tADDRESS")
+  while (ds.selectNext())
   {
     // Print order number
-    Serial.print(++count);
-    Serial.print(F(".\t"));
-
+    SERIAL_CHAIN2(++deviceCount, TAB)
     // Print family name
     switch(ds.getFamilyCode())
     {
-      case DS18B20_MODEL_DS18S20:
-        Serial.print(F("DS18S20"));
+      case GBJ_DALLAS18_MODEL_DS18S20:
+        SERIAL_ACTION("DS18S20/DS1820")
         break;
-      case DS18B20_MODEL_DS1820:
-        Serial.print(F("DS1820"));
+      case GBJ_DALLAS18_MODEL_DS1822:
+        SERIAL_ACTION("DS1822")
         break;
-      case DS18B20_MODEL_DS18B20:
-        Serial.print(F("DS18B20"));
+      case GBJ_DALLAS18_MODEL_DS18B20:
+        SERIAL_ACTION("DS18B20")
         break;
-      default:
-        Serial.print(F("UNKNOWN"));
-    }
-    
-    // Print resolution
-    Serial.print(F("\t"));
-    switch (ds.getResolution())
-    {
-      case DS18B20_RES_9_BIT:
-        Serial.print(F("9"));
-        break;
-      case DS18B20_RES_10_BIT:
-        Serial.print(F("10"));
-        break;
-      case DS18B20_RES_11_BIT:
-        Serial.print(F("11"));
-        break;
-      case DS18B20_RES_12_BIT:
-        Serial.print(F("12"));
+      case GBJ_DALLAS18_MODEL_DS18B25:
+        SERIAL_ACTION("DS18B25")
         break;
       default:
-        Serial.print(F("??"));
+        SERIAL_ACTION("UNKNOWN")
     }
-    Serial.print(F("-bit"));
-    
+    // Print resolution in bits and centigrade
+    SERIAL_CHAIN4(TAB, ds.getResolutionBits(), SERIAL_F(" bits"), TAB);
+    Serial.print(ds.getResolutionTemp(), 4);
+    SERIAL_CHAIN2(SERIAL_F(" 'C"), TAB)
     // Print power mode
-    Serial.print(F("\t"));
     switch (ds.getPowerMode())
     {
-      case DS18B20_POWER_EXTERNAL:
-        Serial.print(F("External"));
+      case GBJ_DALLAS18_POWER_EXTERNAL:
+        SERIAL_ACTION("External")
         break;
-      case DS18B20_POWER_PARASITE:
-        Serial.print(F("Parasite"));
+      case GBJ_DALLAS18_POWER_PARASITE:
+        SERIAL_ACTION("Parasite")
         break;
-      default:
-        Serial.print(F("UNKNOWN"));
     }
-    
-    // Print identifier
-    char addressId[DS18B20_PRINT_ID_LEN];    
-    ds.printAddressId(addressId);    
-    Serial.print(F("\t"));    
-    Serial.print(addressId);
-
-    // Print address
-    char address[DS18B20_PRINT_ADDRESS_LEN];    
-    ds.printAddress(address);    
-    Serial.print(F("\t"));    
-    Serial.println(address);
+    // Print identifier and address
+    ds.printId(idText);
+    ds.printAddress(addressText);
+    SERIAL_LOG4(TAB, idText, TAB, addressText)
   }
-  // Scannig results
-  if (count == 0) Serial.println("N/A");
-  Serial.print(F("*** Found "));
-  Serial.print(count);
-  Serial.print(F(" device"));
-  if (count > 1) Serial.print(F("s"));
-  Serial.println(F(" ***"));
+  // Scanning results
+  SERIAL_LINE
+  if (deviceCount == 0)
+  {
+    SERIAL_TITLE("N/A")
+    return;
+  }
+  SERIAL_LOG3(SERIAL_F("*** Found "), deviceCount, SERIAL_F(" device(s) ***"))
 }
- 
+
  void loop(){}
- 
